@@ -129,4 +129,3 @@ The publish step requires `npm login` with access to the `@butea` scope.
 ### Version bump
 
 Update `version` in all `npm/@butea/*/package.json` files and in the `Makefile`'s `VERSION` variable before running `make publish`.
-
