@@ -28,6 +28,11 @@ func newTestServer(t *testing.T, method, path string, status int, body any) *htt
 	}))
 }
 
+// tc creates a test Client with a fixed "test" version string.
+func tc(baseURL, access, refresh string) *api.Client {
+	return api.NewClient(baseURL, access, refresh, "test")
+}
+
 // ── Login ────────────────────────────────────────────────────────────────────
 
 func TestLogin_Success(t *testing.T) {
@@ -40,7 +45,7 @@ func TestLogin_Success(t *testing.T) {
 	srv := newTestServer(t, http.MethodPost, "/auth/login", http.StatusOK, want)
 	defer srv.Close()
 
-	client := api.NewClient(srv.URL, "", "")
+	client := tc(srv.URL, "", "")
 	got, err := client.Login(context.Background(), "user@example.com", "pass")
 	if err != nil {
 		t.Fatalf("Login() error = %v", err)
@@ -58,7 +63,7 @@ func TestLogin_BadCredentials(t *testing.T) {
 		api.APIError{Code: "UNAUTHORIZED", Message: "invalid credentials"})
 	defer srv.Close()
 
-	client := api.NewClient(srv.URL, "", "")
+	client := tc(srv.URL, "", "")
 	_, err := client.Login(context.Background(), "bad@example.com", "wrong")
 	if err == nil {
 		t.Fatal("Login() should return error on 401")
@@ -78,7 +83,7 @@ func TestGetMe_Success(t *testing.T) {
 	srv := newTestServer(t, http.MethodGet, "/api/v1/me", http.StatusOK, want)
 	defer srv.Close()
 
-	client := api.NewClient(srv.URL, "acc_tok", "ref_tok")
+	client := tc(srv.URL, "acc_tok", "ref_tok")
 	got, err := client.GetMe(context.Background())
 	if err != nil {
 		t.Fatalf("GetMe() error = %v", err)
@@ -103,7 +108,7 @@ func TestGetMe_Unauthorized(t *testing.T) {
 	defer srv.Close()
 
 	// Client has a refresh token but the refresh endpoint also fails
-	client := api.NewClient(srv.URL, "expired_token", "bad_refresh")
+	client := tc(srv.URL, "expired_token", "bad_refresh")
 	_, err := client.GetMe(context.Background())
 	if err == nil {
 		t.Fatal("GetMe() should return error on persistent 401")
@@ -139,7 +144,7 @@ func TestAutoRefresh_RetriesAfter401(t *testing.T) {
 	defer srv.Close()
 
 	var savedAccess string
-	client := api.NewClient(srv.URL, "old_acc", "old_ref")
+	client := tc(srv.URL, "old_acc", "old_ref")
 	client.OnTokenRefresh = func(a, _ string) { savedAccess = a }
 
 	_, err := client.GetMe(context.Background())
@@ -167,7 +172,7 @@ func TestListProjects_Success(t *testing.T) {
 	srv := newTestServer(t, http.MethodGet, "/api/v1/projects/", http.StatusOK, want)
 	defer srv.Close()
 
-	client := api.NewClient(srv.URL, "tok", "")
+	client := tc(srv.URL, "tok", "")
 	got, err := client.ListProjects(context.Background())
 	if err != nil {
 		t.Fatalf("ListProjects() error = %v", err)
@@ -197,7 +202,7 @@ func TestCreateDeployment_Success(t *testing.T) {
 		http.StatusCreated, want)
 	defer srv.Close()
 
-	client := api.NewClient(srv.URL, "tok", "")
+	client := tc(srv.URL, "tok", "")
 	got, err := client.CreateDeployment(context.Background(), pid, "main")
 	if err != nil {
 		t.Fatalf("CreateDeployment() error = %v", err)
@@ -224,7 +229,7 @@ func TestHealth_Healthy(t *testing.T) {
 	srv := newTestServer(t, http.MethodGet, "/health", http.StatusOK, want)
 	defer srv.Close()
 
-	client := api.NewClient(srv.URL, "", "")
+	client := tc(srv.URL, "", "")
 	got, err := client.Health(context.Background())
 	if err != nil {
 		t.Fatalf("Health() error = %v", err)
@@ -247,15 +252,13 @@ func TestHealth_Degraded(t *testing.T) {
 	srv := newTestServer(t, http.MethodGet, "/health", http.StatusServiceUnavailable, want)
 	defer srv.Close()
 
-	// Health returns a non-400 status, so the client should NOT return an error;
-	// the caller inspects HealthResponse.Status.
-	client := api.NewClient(srv.URL, "", "")
-	// The BE returns 503 for degraded — our client treats >=400 as error.
-	// For health, we catch that and still surface the response.
-	// So we expect an APIError here since 503 >= 400.
+	// The BE returns 503 for degraded health. The client treats any >=400 as an
+	// APIError — the health *command* handles this gracefully, but the client
+	// itself must surface the error so callers can detect it.
+	client := tc(srv.URL, "", "")
 	_, err := client.Health(context.Background())
 	if err == nil {
-		t.Log("Note: health returned 503, client surfaced APIError — expected")
+		t.Error("Health() should return an error when the server responds with 503")
 	}
 }
 
@@ -283,7 +286,7 @@ func TestCancelDeployment_Success(t *testing.T) {
 		http.StatusNoContent, nil)
 	defer srv.Close()
 
-	client := api.NewClient(srv.URL, "tok", "")
+	client := tc(srv.URL, "tok", "")
 	if err := client.CancelDeployment(context.Background(), depID); err != nil {
 		t.Fatalf("CancelDeployment() error = %v", err)
 	}
@@ -295,7 +298,7 @@ func TestDeleteProject_Success(t *testing.T) {
 		http.StatusNoContent, nil)
 	defer srv.Close()
 
-	client := api.NewClient(srv.URL, "tok", "")
+	client := tc(srv.URL, "tok", "")
 	if err := client.DeleteProject(context.Background(), projID); err != nil {
 		t.Fatalf("DeleteProject() error = %v", err)
 	}

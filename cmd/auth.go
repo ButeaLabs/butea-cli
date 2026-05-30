@@ -5,10 +5,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"syscall"
 
 	"github.com/spf13/cobra"
-	"golang.org/x/term"
 
 	"github.com/ButeaLabs/butea-cli/internal/config"
 )
@@ -108,19 +106,3 @@ func prompt(label string) (string, error) {
 	}
 	return strings.TrimSpace(line), nil
 }
-
-func promptSecret(label string) (string, error) {
-	fmt.Print(label)
-	raw, err := term.ReadPassword(int(syscall.Stdin))
-	fmt.Println()
-	if err != nil {
-		reader := bufio.NewReader(os.Stdin)
-		line, readErr := reader.ReadString('\n')
-		if readErr != nil {
-			return "", readErr
-		}
-		return strings.TrimSpace(line), nil
-	}
-	return string(raw), nil
-}
-

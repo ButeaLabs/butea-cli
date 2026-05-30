@@ -2,7 +2,8 @@ BINARY_NAME := butea
 VERSION     ?= 0.1.0
 MODULE      := github.com/ButeaLabs/butea-cli
 
-LDFLAGS := -ldflags "-s -w -X main.version=$(VERSION)"
+# -X injects the version into cmd.Version (the exported var read by all commands).
+LDFLAGS := -ldflags "-s -w -X $(MODULE)/cmd.Version=$(VERSION)"
 
 .PHONY: build test clean release
 

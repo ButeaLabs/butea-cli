@@ -50,29 +50,33 @@ Add it to .gitignore or commit it to share with your team.`,
 		}
 
 		// ── Step 1: Authenticate ───────────────────────────────────────────
+		// skipAuth is true when the user already has a valid session and --reauth
+		// was not requested. Using a bool avoids goto.
+		skipAuth := false
 		if cred.IsLoggedIn() && !reauth {
 			client := newClient(cfg, cred)
-			user, err := client.GetMe(background())
-			if err == nil {
+			user, userErr := client.GetMe(background())
+			if userErr == nil {
 				name := user.Email
 				if user.Name != nil && *user.Name != "" {
 					name = *user.Name
 				}
 				fmt.Printf("✓ Already authenticated as %s\n", name)
 				fmt.Printf("  Run 'butea init --reauth' to sign in with a different account.\n\n")
-				goto linkStep
+				skipAuth = true
+			} else {
+				// Token invalid — fall through to re-auth
+				fmt.Println("  Stored token is invalid. Re-authenticating…")
 			}
-			// Token invalid — fall through to re-auth
-			fmt.Println("  Stored token is invalid. Re-authenticating…")
 		}
 
-		{
+		if !skipAuth {
 			fmt.Printf("\n  butea CLI setup\n")
 			fmt.Printf("  %s\n\n", strings.Repeat("─", 38))
 
-			result, err := auth.StartBrowserFlow(background(), cfg.AppURL, 5*time.Minute)
-			if err != nil {
-				return fmt.Errorf("authentication failed: %w", err)
+			result, flowErr := auth.StartBrowserFlow(background(), cfg.AppURL, 5*time.Minute)
+			if flowErr != nil {
+				return fmt.Errorf("authentication failed: %w", flowErr)
 			}
 
 			cred.AccessToken = result.AccessToken
@@ -86,11 +90,11 @@ Add it to .gitignore or commit it to share with your team.`,
 				return fmt.Errorf("save credentials: %w", saveErr)
 			}
 
-			// Confirm identity
+			// Confirm identity — reuse already-loaded cfg and freshly saved cred
 			client := newClient(cfg, cred)
-			user, err := client.GetMe(background())
-			if err != nil {
-				return fmt.Errorf("verify authentication: %w", err)
+			user, userErr := client.GetMe(background())
+			if userErr != nil {
+				return fmt.Errorf("verify authentication: %w", userErr)
 			}
 			name := user.Email
 			if user.Name != nil && *user.Name != "" {
@@ -102,7 +106,6 @@ Add it to .gitignore or commit it to share with your team.`,
 			fmt.Printf("  ✓ Credentials saved to %s\n\n", dir)
 		}
 
-	linkStep:
 		// ── Step 2: Optionally link current directory to a project ─────────
 		if !linkProject {
 			answer, promptErr := prompt("Link this directory to a Butea project? [y/N]: ")
@@ -113,18 +116,15 @@ Add it to .gitignore or commit it to share with your team.`,
 			}
 		}
 
-		cfg2, cred2, err := loadAll()
-		if err != nil {
-			return err
-		}
-		client := newClient(cfg2, cred2)
+		// Reuse cfg and cred — no need to reload from disk again.
+		client := newClient(cfg, cred)
 
 		resp, err := client.ListProjects(background())
 		if err != nil {
 			return fmt.Errorf("list projects: %w", err)
 		}
 		if len(resp.Projects) == 0 {
-			fmt.Println("\nNo projects found. Import one at", cfg2.AppURL+"/import")
+			fmt.Println("\nNo projects found. Import one at", cfg.AppURL+"/import")
 			return nil
 		}
 
@@ -140,9 +140,8 @@ Add it to .gitignore or commit it to share with your team.`,
 		}
 
 		var projectID string
-		// Check if input is a numeric index
 		var idx int
-		if _, err := fmt.Sscanf(choice, "%d", &idx); err == nil && idx >= 1 && idx <= len(resp.Projects) {
+		if _, scanErr := fmt.Sscanf(choice, "%d", &idx); scanErr == nil && idx >= 1 && idx <= len(resp.Projects) {
 			projectID = resp.Projects[idx-1].ID
 		} else {
 			projectID = strings.TrimSpace(choice)
