@@ -1,6 +1,6 @@
 {
   "name": "butea-cli",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "The official CLI for the Butea platform — deploy from your terminal",
   "bin": {
     "butea": "./bin/butea.js"
@@ -10,12 +10,12 @@
     "README.md"
   ],
   "optionalDependencies": {
-    "butea-cli-darwin-arm64": "0.1.1",
-    "butea-cli-darwin-x64": "0.1.1",
-    "butea-cli-linux-arm64": "0.1.1",
-    "butea-cli-linux-x64": "0.1.1",
-    "butea-cli-windows-arm64": "0.1.1",
-    "butea-cli-windows-x64": "0.1.1"
+    "butea-cli-darwin-arm64": "0.1.2",
+    "butea-cli-darwin-x64": "0.1.2",
+    "butea-cli-linux-arm64": "0.1.2",
+    "butea-cli-linux-x64": "0.1.2",
+    "butea-cli-windows-arm64": "0.1.2",
+    "butea-cli-windows-x64": "0.1.2"
   },
   "engines": {
     "node": ">=18"
