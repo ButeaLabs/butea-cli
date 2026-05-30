@@ -2,7 +2,9 @@
 'use strict';
 
 const { spawnSync } = require('child_process');
-const os = require('os');
+const os   = require('os');
+const path = require('path');
+const fs   = require('fs');
 
 const PLATFORM = os.platform(); // darwin, linux, win32
 const ARCH = os.arch();         // arm64, x64
@@ -27,9 +29,13 @@ if (!entry) {
   process.exit(1);
 }
 
+// Resolve the package root via package.json (reliable for extensionless binaries
+// across all Node.js versions), then construct the binary path manually.
 let binaryPath;
 try {
-  binaryPath = require.resolve(`${entry.pkg}/bin/${entry.bin}`);
+  const pkgJson = require.resolve(`${entry.pkg}/package.json`);
+  binaryPath = path.join(path.dirname(pkgJson), 'bin', entry.bin);
+  if (!fs.existsSync(binaryPath)) throw new Error('not found');
 } catch {
   console.error(
     `butea-cli: could not find binary for ${PLATFORM}/${ARCH}.\n` +
