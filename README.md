@@ -3,6 +3,8 @@
 > The official command-line interface for the [Butea](https://app.butea.in) platform.  
 > Deploy projects, manage deployments and more — without leaving your terminal or IDE.
 
+[![npm version](https://img.shields.io/npm/v/butea-cli)](https://www.npmjs.com/package/butea-cli)
+
 ---
 
 ## Install
