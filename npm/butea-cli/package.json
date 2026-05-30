@@ -6,7 +6,8 @@
     "butea": "./bin/butea.js"
   },
   "files": [
-    "bin/butea.js"
+    "bin/butea.js",
+    "README.md"
   ],
   "optionalDependencies": {
     "butea-cli-darwin-arm64": "0.1.1",

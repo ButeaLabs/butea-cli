@@ -54,7 +54,7 @@ jobs:
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: '0'
         run: |
-          go build -trimpath -ldflags="-s -w -X main.version=${GITHUB_REF_NAME}" \
+          go build -trimpath -ldflags="-s -w -X github.com/ButeaLabs/butea-cli/cmd.Version=${GITHUB_REF_NAME}" \
             -o ${{ matrix.binary }} .
 
       - name: Upload artifact
@@ -125,6 +125,7 @@ jobs:
           VERSION: ${{ steps.version.outputs.VERSION }}
         run: |
           set -euo pipefail
+          cp README.md npm/butea-cli/README.md
           cd npm/butea-cli
 
           # Bump version and pin all optionalDependencies to this release
