@@ -1,5 +1,5 @@
 BINARY_NAME := butea
-VERSION     ?= 0.1.2
+VERSION     ?= 0.0.1
 MODULE      := github.com/ButeaLabs/butea-cli
 
 # -X injects the version into cmd.Version (the exported var read by all commands).

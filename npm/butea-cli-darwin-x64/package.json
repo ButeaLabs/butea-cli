@@ -1,6 +1,6 @@
 {
   "name": "butea-cli-darwin-x64",
-  "version": "0.1.2",
+  "version": "0.0.1",
   "description": "Butea CLI binary for darwin-x64",
   "os": [
     "darwin"

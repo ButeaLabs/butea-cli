@@ -1,6 +1,6 @@
 {
   "name": "butea-cli-windows-arm64",
-  "version": "0.1.2",
+  "version": "0.0.1",
   "description": "Butea CLI binary for windows-arm64",
   "os": [
     "windows"
