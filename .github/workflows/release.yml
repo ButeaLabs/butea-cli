@@ -96,7 +96,7 @@ jobs:
           publish_platform() {
             local suffix="$1"
             local binary="$2"
-            local pkg_dir="npm/butea-cli-${suffix}"
+            local pkg_dir="npm/@butea/cli-${suffix}"
 
             mkdir -p "${pkg_dir}/bin"
             cp "artifacts/butea-cli-${suffix}/${binary}" "${pkg_dir}/bin/${binary}"
@@ -125,7 +125,7 @@ jobs:
           VERSION: ${{ steps.version.outputs.VERSION }}
         run: |
           set -euo pipefail
-          cd npm/butea-cli
+          cd npm/@butea/cli
 
           # Bump version and pin all optionalDependencies to this release
           npm version "${VERSION}" --no-git-tag-version --allow-same-version
