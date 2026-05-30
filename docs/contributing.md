@@ -13,7 +13,7 @@
 # Local binary (current platform)
 go build -o butea .
 
-# All platforms (lands in npm/butea-cli-{platform}/bin/)
+# All platforms (lands in npm/@butea/cli-{platform}/bin/)
 make release
 ```
 
@@ -66,14 +66,10 @@ butea-cli/
 ├── docs/                      this directory
 │
 └── npm/
-    ├── butea-cli/             main npm package  (butea-cli on npmjs.com)
-    │   └── bin/butea.js       Node shim — resolves platform binary
-    ├── butea-cli-darwin-arm64/
-    ├── butea-cli-darwin-x64/
-    ├── butea-cli-linux-arm64/
-    ├── butea-cli-linux-x64/
-    ├── butea-cli-windows-arm64/
-    └── butea-cli-windows-x64/
+    └── @butea/
+        ├── cli/               main npm package  (@butea/cli)
+        │   └── bin/butea.js   Node shim — resolves platform binary
+        └── cli-{platform}/    one package per platform binary
 ```
 
 ---
@@ -124,12 +120,12 @@ func init() {
 # 1. Build all platform binaries
 make release
 
-# 2. Publish platform packages first, then the main shim
+# 2. Publish all seven packages (@butea/cli + 6 platform packages)
 make publish
 ```
 
-The publish step requires `npm login` (standard npmjs.com account with access to publish `butea-cli` and the `butea-cli-*` platform packages).
+The publish step requires `npm login` with access to the `@butea` scope.
 
 ### Version bump
 
-Update `VERSION` in the `Makefile` and `"version"` in all `npm/butea-cli*/package.json` files, then run `make publish`.
+Update `version` in all `npm/@butea/*/package.json` files and in the `Makefile`'s `VERSION` variable before running `make publish`.
