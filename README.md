@@ -1,14 +1,16 @@
-# @butea/cli
+# butea-cli
 
 > The official command-line interface for the [Butea](https://app.butea.app) platform.  
 > Deploy projects, manage deployments and more — without leaving your terminal or IDE.
+
+[![npm version](https://img.shields.io/npm/v/butea-cli)](https://www.npmjs.com/package/butea-cli)
 
 ---
 
 ## Install
 
 ```bash
-npm install -g @butea/cli
+npm install -g butea-cli
 ```
 
 Requires **Node.js 18+**. The correct binary for your OS/architecture is installed automatically.

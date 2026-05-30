@@ -3,7 +3,7 @@
 ## Installation
 
 ```bash
-npm install -g @butea/cli
+npm install -g butea-cli
 ```
 
 Verify the install:

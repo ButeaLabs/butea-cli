@@ -18,8 +18,11 @@ import (
 var Version = "dev"
 
 // SetVersion is called from main before Execute() so the build-time version
-// string is visible to all commands.
-func SetVersion(v string) { Version = v }
+// string is visible to all commands and Cobra's --version flag.
+func SetVersion(v string) {
+	Version = v
+	rootCmd.Version = v
+}
 
 var (
 	apiURLFlag string
