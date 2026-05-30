@@ -21,8 +21,8 @@ import (
 // ── Defaults ─────────────────────────────────────────────────────────────────
 
 const (
-	DefaultAPIURL = "https://api.butea.app"
-	DefaultAppURL = "https://app.butea.app"
+	DefaultAPIURL = "https://api.butea.in"
+	DefaultAppURL = "https://butea.in"
 
 	// EnvAPIURL and EnvAppURL are the environment variable names that override
 	// the stored config. Useful in CI, Docker, or self-hosted deployments.

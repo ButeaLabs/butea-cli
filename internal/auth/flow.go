@@ -4,7 +4,7 @@
 //  1. CLI generates a random state token for CSRF protection.
 //  2. CLI starts a local HTTP server on 127.0.0.1 (random free port).
 //  3. CLI opens the browser to:
-//     https://app.butea.app/signin?cli_port=PORT&cli_state=STATE
+ //     https://butea.in/signin?cli_port=PORT&cli_state=STATE
 //  4. User signs in via the web app (OAuth or email/password).
 //  5. The web app's /auth/callback page detects cli_port/cli_state stored in
 //     sessionStorage and redirects to:
