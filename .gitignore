@@ -32,7 +32,7 @@ go.work.sum
 .env
 
 # Editor/IDE
- .idea/
+.idea/
 # .vscode/
 butea
 /*/*/node_modules
