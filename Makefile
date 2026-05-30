@@ -1,11 +1,12 @@
 BINARY_NAME := butea
-VERSION     ?= 0.0.1
+VERSION     ?= 0.1.0
 MODULE      := github.com/ButeaLabs/butea-cli
 
-# -X injects the version into cmd.Version (the exported var read by all commands).
-LDFLAGS := -ldflags "-s -w -X $(MODULE)/cmd.Version=$(VERSION)"
+# -X main.version injects the version into the unexported var in main.go.
+# SetVersion() then copies it to cmd.Version and rootCmd.Version (--version flag).
+LDFLAGS := -ldflags "-s -w -X main.version=$(VERSION)"
 
-.PHONY: build test clean release help
+.PHONY: build test test-verbose clean release dev-install publish help
 
 help:
 	@echo "Usage: make <target>"
@@ -14,6 +15,7 @@ help:
 	@echo "  build          Build the CLI binary for the current platform"
 	@echo "  test           Run tests"
 	@echo "  test-verbose   Run tests with verbose output"
+	@echo "  dev-install    Build darwin-arm64 binary and npm link for local use"
 	@echo "  release        Cross-compile binaries for all platforms"
 	@echo "  publish        Build all platforms and publish to npm"
 	@echo "  clean          Remove built binaries"
@@ -30,6 +32,17 @@ test:
 
 test-verbose:
 	go test ./... -v -count=1
+
+# ── Dev install: build darwin-arm64, npm link both packages ──────────────────
+
+dev-install: npm/butea-cli-darwin-arm64/bin/butea
+	chmod +x npm/butea-cli-darwin-arm64/bin/butea npm/butea-cli/bin/butea.js
+	@echo "Linking platform package …"
+	cd npm/butea-cli-darwin-arm64 && npm link
+	@echo "Linking main shim …"
+	cd npm/butea-cli && npm link butea-cli-darwin-arm64 && npm link
+	@echo ""
+	@echo "Done! Run: butea --version"
 
 # ── Release: compile for all platforms ───────────────────────────────────────
 # Binaries land in the matching npm/butea-cli-{platform}/bin/ directory.
