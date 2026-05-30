@@ -1,51 +1,88 @@
-/*
-Copyright © 2026 NAME HERE <EMAIL ADDRESS>
-
-*/
+// Package cmd wires all Cobra commands for the butea CLI.
 package cmd
 
 import (
+	"context"
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
+
+	"github.com/ButeaLabs/butea-cli/internal/api"
+	"github.com/ButeaLabs/butea-cli/internal/config"
 )
 
+var (
+	apiURLFlag string
+	appURLFlag string
+)
 
-
-// rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "butea-cli",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Use:   "butea",
+	Short: "butea CLI — deploy and manage your projects from the terminal",
+	Long: `butea is the command-line interface for the Butea platform.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+  butea init                    # authenticate & set up
+  butea deploy                  # trigger a deployment
+  butea projects list           # list your projects
+  butea health                  # check API reachability
+
+Full documentation: https://docs.butea.app/cli`,
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
+// Execute is the entry-point called from main.
 func Execute() {
-	err := rootCmd.Execute()
-	if err != nil {
+	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.butea-cli.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.PersistentFlags().StringVar(&apiURLFlag, "api-url", "",
+		"Backend API URL (overrides BUTEA_API_URL env and ~/.butea/config.toml)")
+	rootCmd.PersistentFlags().StringVar(&appURLFlag, "app-url", "",
+		"Frontend app URL (overrides BUTEA_APP_URL env and ~/.butea/config.toml)")
 }
 
+// ── shared helpers ────────────────────────────────────────────────────────────
 
+// loadAll loads global config + credentials.
+// Priority: CLI flags > env vars (applied in LoadGlobal) > config.toml > defaults.
+func loadAll() (*config.GlobalConfig, *config.Credentials, error) {
+	cfg, err := config.LoadGlobal()
+	if err != nil {
+		return nil, nil, fmt.Errorf("load config: %w", err)
+	}
+	// CLI flags are the highest priority override
+	if apiURLFlag != "" {
+		cfg.APIURL = apiURLFlag
+	}
+	if appURLFlag != "" {
+		cfg.AppURL = appURLFlag
+	}
+	cred, err := config.LoadCredentials()
+	if err != nil {
+		return nil, nil, fmt.Errorf("load credentials: %w", err)
+	}
+	return cfg, cred, nil
+}
+
+// newClient builds an *api.Client and wires the auto-refresh persistence hook.
+func newClient(cfg *config.GlobalConfig, cred *config.Credentials) *api.Client {
+	c := api.NewClient(cfg.APIURL, cred.AccessToken, cred.RefreshToken)
+	c.OnTokenRefresh = func(access, refresh string) {
+		cred.AccessToken = access
+		cred.RefreshToken = refresh
+		_ = cred.Save()
+	}
+	return c
+}
+
+// background returns a plain context for all CLI requests.
+func background() context.Context { return context.Background() }
+
+// fatal prints to stderr and exits 1.
+func fatal(format string, args ...any) {
+	fmt.Fprintf(os.Stderr, "error: "+format+"\n", args...)
+	os.Exit(1)
+}
