@@ -63,13 +63,15 @@ npm/butea-cli-windows-x64/bin/butea.exe:
 # ── Publish (requires npm login) ─────────────────────────────────────────────
 
 publish: release
-	@for dir in npm/butea-cli \
-	             npm/butea-cli-darwin-arm64 npm/butea-cli-darwin-x64 \
+	@for dir in npm/butea-cli-darwin-arm64 npm/butea-cli-darwin-x64 \
 	             npm/butea-cli-linux-arm64 npm/butea-cli-linux-x64 \
 	             npm/butea-cli-windows-arm64 npm/butea-cli-windows-x64; do \
 	  echo "Publishing $$dir …"; \
 	  (cd $$dir && npm publish --access public); \
 	done
+	@echo "Publishing npm/butea-cli …"
+	cp README.md npm/butea-cli/README.md
+	(cd npm/butea-cli && npm publish --access public)
 
 clean:
 	rm -f $(BINARY_NAME)
