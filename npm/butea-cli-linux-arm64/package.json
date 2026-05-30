@@ -1,6 +1,6 @@
 {
   "name": "butea-cli-linux-arm64",
-  "version": "0.0.2",
+  "version": "0.2.0",
   "description": "Butea CLI binary for linux-arm64",
   "os": [
     "linux"
