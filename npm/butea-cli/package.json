@@ -1,6 +1,6 @@
 {
-  "name": "@butea/cli",
-  "version": "0.1.0",
+  "name": "butea-cli",
+  "version": "0.1.1",
   "description": "The official CLI for the Butea platform — deploy from your terminal",
   "bin": {
     "butea": "./bin/butea.js"
@@ -9,19 +9,24 @@
     "bin/butea.js"
   ],
   "optionalDependencies": {
-    "@butea/cli-darwin-arm64": "0.1.0",
-    "@butea/cli-darwin-x64":   "0.1.0",
-    "@butea/cli-linux-arm64":  "0.1.0",
-    "@butea/cli-linux-x64":    "0.1.0",
-    "@butea/cli-windows-arm64": "0.1.0",
-    "@butea/cli-windows-x64":  "0.1.0"
+    "butea-cli-darwin-arm64": "0.1.1",
+    "butea-cli-darwin-x64": "0.1.1",
+    "butea-cli-linux-arm64": "0.1.1",
+    "butea-cli-linux-x64": "0.1.1",
+    "butea-cli-windows-arm64": "0.1.1",
+    "butea-cli-windows-x64": "0.1.1"
   },
   "engines": {
     "node": ">=18"
   },
-  "keywords": ["butea", "cli", "deploy", "devtools"],
+  "keywords": [
+    "butea",
+    "cli",
+    "deploy",
+    "devtools"
+  ],
   "license": "MIT",
-  "homepage": "https://docs.butea.app/cli",
+  "homepage": "https://docs.butea.in/cli",
   "repository": {
     "type": "git",
     "url": "https://github.com/ButeaLabs/butea-cli.git"
@@ -30,4 +35,3 @@
     "url": "https://github.com/ButeaLabs/butea-cli/issues"
   }
 }
-
