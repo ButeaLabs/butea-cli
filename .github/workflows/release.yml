@@ -109,7 +109,15 @@ jobs:
 
             cd "${pkg_dir}"
             npm version "${VERSION}" --no-git-tag-version --allow-same-version
-            npm publish --access public
+
+            # Skip if this version is already on the registry (idempotent)
+            local pkg_name
+            pkg_name=$(node -p "require('./package.json').name")
+            if npm view "${pkg_name}@${VERSION}" version &>/dev/null 2>&1; then
+              echo "⏭  ${pkg_name}@${VERSION} already published, skipping."
+            else
+              npm publish --access public
+            fi
             cd -
           }
 
@@ -141,7 +149,12 @@ jobs:
           fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
           JS
 
-          npm publish --access public
+          # Skip if already published (idempotent)
+          if npm view "butea-cli@${VERSION}" version &>/dev/null 2>&1; then
+            echo "⏭  butea-cli@${VERSION} already published, skipping."
+          else
+            npm publish --access public
+          fi
 
   create-github-release:
     name: Create GitHub Release
