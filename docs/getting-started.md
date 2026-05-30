@@ -3,7 +3,7 @@
 ## Installation
 
 ```bash
-npm install -g @butea/cli
+npm install -g butea-cli
 ```
 
 Verify the install:
@@ -24,7 +24,7 @@ butea init
 ```
 
 What happens:
-1. Your browser opens to `https://app.butea.app/signin`
+1. Your browser opens to `https://butea.in/signin`
 2. Sign in with GitHub, GitLab, or Google
 3. The browser hands tokens back to the CLI automatically
 4. `~/.butea/` is created with your credentials

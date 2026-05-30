@@ -39,7 +39,7 @@ var rootCmd = &cobra.Command{
   butea projects list           # list your projects
   butea health                  # check API reachability
 
-Full documentation: https://docs.butea.in/cli`,
+Full documentation: https://butea.in/docs/cli`,
 }
 
 // Execute is the entry-point called from main.
