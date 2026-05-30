@@ -1,0 +1,27 @@
+{
+  "name": "butea-cli",
+  "version": "0.0.0",
+  "description": "CLI for managing the Butea platform",
+  "bin": {
+    "butea-cli": "./bin/butea-cli.js"
+  },
+  "files": [
+    "bin/butea-cli.js"
+  ],
+  "optionalDependencies": {
+    "butea-cli-darwin-arm64": "0.0.0",
+    "butea-cli-darwin-x64": "0.0.0",
+    "butea-cli-linux-arm64": "0.0.0",
+    "butea-cli-linux-x64": "0.0.0",
+    "butea-cli-windows-arm64": "0.0.0",
+    "butea-cli-windows-x64": "0.0.0"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ButeaLabs/butea-cli.git"
+  }
+}

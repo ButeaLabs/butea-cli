@@ -1,0 +1,186 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.npm_pkg }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: darwin
+            goarch: arm64
+            npm_pkg: butea-cli-darwin-arm64
+            binary: butea-cli
+          - goos: darwin
+            goarch: amd64
+            npm_pkg: butea-cli-darwin-x64
+            binary: butea-cli
+          - goos: linux
+            goarch: arm64
+            npm_pkg: butea-cli-linux-arm64
+            binary: butea-cli
+          - goos: linux
+            goarch: amd64
+            npm_pkg: butea-cli-linux-x64
+            binary: butea-cli
+          - goos: windows
+            goarch: arm64
+            npm_pkg: butea-cli-windows-arm64
+            binary: butea-cli.exe
+          - goos: windows
+            goarch: amd64
+            npm_pkg: butea-cli-windows-x64
+            binary: butea-cli.exe
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: '0'
+        run: |
+          go build -trimpath -ldflags="-s -w -X main.version=${GITHUB_REF_NAME}" \
+            -o ${{ matrix.binary }} .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.npm_pkg }}
+          path: ${{ matrix.binary }}
+          if-no-files-found: error
+
+  publish-npm:
+    name: Publish to npm
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Publish platform packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          VERSION: ${{ steps.version.outputs.VERSION }}
+        run: |
+          set -euo pipefail
+
+          publish_platform() {
+            local suffix="$1"
+            local binary="$2"
+            local pkg_dir="npm/butea-cli-${suffix}"
+
+            mkdir -p "${pkg_dir}/bin"
+            cp "artifacts/butea-cli-${suffix}/${binary}" "${pkg_dir}/bin/${binary}"
+
+            # Mark Unix binaries as executable
+            if [[ "${binary}" != *.exe ]]; then
+              chmod +x "${pkg_dir}/bin/${binary}"
+            fi
+
+            cd "${pkg_dir}"
+            npm version "${VERSION}" --no-git-tag-version --allow-same-version
+            npm publish --access public
+            cd -
+          }
+
+          publish_platform darwin-arm64  butea-cli
+          publish_platform darwin-x64    butea-cli
+          publish_platform linux-arm64   butea-cli
+          publish_platform linux-x64     butea-cli
+          publish_platform windows-arm64 butea-cli.exe
+          publish_platform windows-x64   butea-cli.exe
+
+      - name: Update and publish main package
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          VERSION: ${{ steps.version.outputs.VERSION }}
+        run: |
+          set -euo pipefail
+          cd npm/butea-cli
+
+          # Bump version and pin all optionalDependencies to this release
+          npm version "${VERSION}" --no-git-tag-version --allow-same-version
+          node - <<'JS'
+          const fs = require('fs');
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          const version = process.env.VERSION;
+          for (const key of Object.keys(pkg.optionalDependencies)) {
+            pkg.optionalDependencies[key] = version;
+          }
+          fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          JS
+
+          npm publish --access public
+
+  create-github-release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create release archives
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+
+          package() {
+            local suffix="$1"
+            local binary="$2"
+            local src="artifacts/butea-cli-${suffix}/${binary}"
+
+            if [[ "${binary}" == *.exe ]]; then
+              zip -j "dist/butea-cli-${GITHUB_REF_NAME}-${suffix}.zip" "${src}"
+            else
+              chmod +x "${src}"
+              tar -czf "dist/butea-cli-${GITHUB_REF_NAME}-${suffix}.tar.gz" -C "$(dirname "${src}")" "${binary}"
+            fi
+          }
+
+          package darwin-arm64  butea-cli
+          package darwin-x64    butea-cli
+          package linux-arm64   butea-cli
+          package linux-x64     butea-cli
+          package windows-arm64 butea-cli.exe
+          package windows-x64   butea-cli.exe
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true

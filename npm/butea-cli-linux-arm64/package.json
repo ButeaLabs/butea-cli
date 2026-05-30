@@ -1,0 +1,19 @@
+{
+  "name": "butea-cli-linux-arm64",
+  "version": "0.0.0",
+  "description": "Linux arm64 binary for butea-cli",
+  "os": ["linux"],
+  "cpu": ["arm64"],
+  "bin": {
+    "butea-cli": "./bin/butea-cli"
+  },
+  "files": [
+    "bin/butea-cli"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ButeaLabs/butea-cli.git",
+    "directory": "npm/butea-cli-linux-arm64"
+  }
+}

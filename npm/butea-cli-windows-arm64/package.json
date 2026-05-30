@@ -1,0 +1,19 @@
+{
+  "name": "butea-cli-windows-arm64",
+  "version": "0.0.0",
+  "description": "Windows arm64 binary for butea-cli",
+  "os": ["win32"],
+  "cpu": ["arm64"],
+  "bin": {
+    "butea-cli": "./bin/butea-cli.exe"
+  },
+  "files": [
+    "bin/butea-cli.exe"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ButeaLabs/butea-cli.git",
+    "directory": "npm/butea-cli-windows-arm64"
+  }
+}

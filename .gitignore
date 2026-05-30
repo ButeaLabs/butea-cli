@@ -8,6 +8,10 @@
 *.so
 *.dylib
 
+# Allow binaries placed by CI inside npm platform packages
+!npm/*/bin/butea-cli
+!npm/*/bin/butea-cli.exe
+
 # Test binary, built with `go test -c`
 *.test
 
