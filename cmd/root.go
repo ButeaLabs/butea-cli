@@ -12,6 +12,15 @@ import (
 	"github.com/ButeaLabs/butea-cli/internal/config"
 )
 
+// Version is the CLI version string, injected at build time via:
+//
+//	go build -ldflags "-X github.com/ButeaLabs/butea-cli/cmd.Version=v1.2.3"
+var Version = "dev"
+
+// SetVersion is called from main before Execute() so the build-time version
+// string is visible to all commands.
+func SetVersion(v string) { Version = v }
+
 var (
 	apiURLFlag string
 	appURLFlag string
@@ -69,7 +78,7 @@ func loadAll() (*config.GlobalConfig, *config.Credentials, error) {
 
 // newClient builds an *api.Client and wires the auto-refresh persistence hook.
 func newClient(cfg *config.GlobalConfig, cred *config.Credentials) *api.Client {
-	c := api.NewClient(cfg.APIURL, cred.AccessToken, cred.RefreshToken)
+	c := api.NewClient(cfg.APIURL, cred.AccessToken, cred.RefreshToken, Version)
 	c.OnTokenRefresh = func(access, refresh string) {
 		cred.AccessToken = access
 		cred.RefreshToken = refresh

@@ -16,6 +16,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -89,8 +90,13 @@ func StartBrowserFlow(ctx context.Context, appURL string, timeout time.Duration)
 		go shutdownSoon(srv)
 	})
 
-	// Serve in background.
-	go func() { _ = srv.Serve(ln) }()
+	// Serve in background. ErrServerClosed is expected on Shutdown; all other
+	// errors are surfaced via errCh so the caller doesn't hang forever.
+	go func() {
+		if err := srv.Serve(ln); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			errCh <- fmt.Errorf("local callback server error: %w", err)
+		}
+	}()
 
 	// 3. Build and print the auth URL.
 	authURL := fmt.Sprintf("%s/signin?cli_port=%d&cli_state=%s", appURL, port, state)

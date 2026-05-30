@@ -17,18 +17,21 @@ type Client struct {
 	baseURL      string
 	accessToken  string
 	refreshToken string
+	userAgent    string
 	http         *http.Client
 	// OnTokenRefresh is called after a successful silent token refresh so the
 	// caller can persist the new tokens.
 	OnTokenRefresh func(accessToken, refreshToken string)
 }
 
-// NewClient creates a new Client.
-func NewClient(baseURL, accessToken, refreshToken string) *Client {
+// NewClient creates a new Client. version is included in the User-Agent header
+// (e.g. "butea-cli/v1.2.3") and is injected at build time via ldflags.
+func NewClient(baseURL, accessToken, refreshToken, version string) *Client {
 	return &Client{
 		baseURL:      baseURL,
 		accessToken:  accessToken,
 		refreshToken: refreshToken,
+		userAgent:    "butea-cli/" + version,
 		http:         &http.Client{Timeout: 30 * time.Second},
 	}
 }
@@ -172,7 +175,7 @@ func (c *Client) doOnce(ctx context.Context, method, path string, body, out any,
 		req.Header.Set("Authorization", "Bearer "+c.accessToken)
 	}
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("User-Agent", "butea-cli/0.1.0")
+	req.Header.Set("User-Agent", c.userAgent)
 
 	resp, err := c.http.Do(req)
 	if err != nil {
