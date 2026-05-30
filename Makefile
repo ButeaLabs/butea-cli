@@ -1,24 +1,25 @@
 BINARY_NAME := butea
-VERSION     ?= 0.1.0
+VERSION     ?= 0.2.0
 MODULE      := github.com/ButeaLabs/butea-cli
 
 # -X main.version injects the version into the unexported var in main.go.
 # SetVersion() then copies it to cmd.Version and rootCmd.Version (--version flag).
 LDFLAGS := -ldflags "-s -w -X main.version=$(VERSION)"
 
-.PHONY: build test test-verbose clean release dev-install publish help
+.PHONY: build test test-verbose clean release dev-install publish publish-platforms help
 
 help:
 	@echo "Usage: make <target>"
 	@echo ""
 	@echo "Targets:"
-	@echo "  build          Build the CLI binary for the current platform"
-	@echo "  test           Run tests"
-	@echo "  test-verbose   Run tests with verbose output"
-	@echo "  dev-install    Build darwin-arm64 binary and npm link for local use"
-	@echo "  release        Cross-compile binaries for all platforms"
-	@echo "  publish        Build all platforms and publish to npm"
-	@echo "  clean          Remove built binaries"
+	@echo "  build              Build the CLI binary for the current platform"
+	@echo "  test               Run tests"
+	@echo "  test-verbose       Run tests with verbose output"
+	@echo "  dev-install        Build darwin-arm64 binary and npm link for local use"
+	@echo "  release            Cross-compile binaries for all platforms"
+	@echo "  publish-platforms  Publish only the platform binary packages to npm"
+	@echo "  publish            Build all platforms and publish everything to npm"
+	@echo "  clean              Remove built binaries"
 
 # ── Local build ──────────────────────────────────────────────────────────────
 
@@ -75,16 +76,25 @@ npm/butea-cli-windows-x64/bin/butea.exe:
 
 # ── Publish (requires npm login) ─────────────────────────────────────────────
 
-publish: release
+# publish-platforms: publish only the 6 platform binary packages.
+# Use this when the main butea-cli shim is already published at the current version.
+publish-platforms: release
 	@for dir in npm/butea-cli-darwin-arm64 npm/butea-cli-darwin-x64 \
 	             npm/butea-cli-linux-arm64 npm/butea-cli-linux-x64 \
 	             npm/butea-cli-windows-arm64 npm/butea-cli-windows-x64; do \
 	  echo "Publishing $$dir …"; \
 	  (cd $$dir && npm publish --access public); \
 	done
+	@echo ""
+	@echo "✓ Platform packages published."
+	@echo "  Users can now: npm install -g butea-cli"
+
+# publish: publish everything — platform packages first, then the main shim.
+publish: publish-platforms
 	@echo "Publishing npm/butea-cli …"
 	cp README.md npm/butea-cli/README.md
 	(cd npm/butea-cli && npm publish --access public)
+	@echo "✓ All packages published."
 
 clean:
 	rm -f $(BINARY_NAME)

@@ -18,27 +18,27 @@ jobs:
           - goos: darwin
             goarch: arm64
             npm_pkg: butea-cli-darwin-arm64
-            binary: butea-cli
+            binary: butea
           - goos: darwin
             goarch: amd64
             npm_pkg: butea-cli-darwin-x64
-            binary: butea-cli
+            binary: butea
           - goos: linux
             goarch: arm64
             npm_pkg: butea-cli-linux-arm64
-            binary: butea-cli
+            binary: butea
           - goos: linux
             goarch: amd64
             npm_pkg: butea-cli-linux-x64
-            binary: butea-cli
+            binary: butea
           - goos: windows
             goarch: arm64
             npm_pkg: butea-cli-windows-arm64
-            binary: butea-cli.exe
+            binary: butea.exe
           - goos: windows
             goarch: amd64
             npm_pkg: butea-cli-windows-x64
-            binary: butea-cli.exe
+            binary: butea.exe
 
     steps:
       - uses: actions/checkout@v4
@@ -54,7 +54,8 @@ jobs:
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: '0'
         run: |
-          go build -trimpath -ldflags="-s -w -X github.com/ButeaLabs/butea-cli/cmd.Version=${GITHUB_REF_NAME}" \
+          VERSION="${GITHUB_REF_NAME#v}"
+          go build -trimpath -ldflags="-s -w -X main.version=${VERSION}" \
             -o ${{ matrix.binary }} .
 
       - name: Upload artifact
@@ -112,12 +113,12 @@ jobs:
             cd -
           }
 
-          publish_platform darwin-arm64  butea-cli
-          publish_platform darwin-x64    butea-cli
-          publish_platform linux-arm64   butea-cli
-          publish_platform linux-x64     butea-cli
-          publish_platform windows-arm64 butea-cli.exe
-          publish_platform windows-x64   butea-cli.exe
+          publish_platform darwin-arm64  butea
+          publish_platform darwin-x64    butea
+          publish_platform linux-arm64   butea
+          publish_platform linux-x64     butea
+          publish_platform windows-arm64 butea.exe
+          publish_platform windows-x64   butea.exe
 
       - name: Update and publish main package
         env:
@@ -173,12 +174,12 @@ jobs:
             fi
           }
 
-          package darwin-arm64  butea-cli
-          package darwin-x64    butea-cli
-          package linux-arm64   butea-cli
-          package linux-x64     butea-cli
-          package windows-arm64 butea-cli.exe
-          package windows-x64   butea-cli.exe
+          package darwin-arm64  butea
+          package darwin-x64    butea
+          package linux-arm64   butea
+          package linux-x64     butea
+          package windows-arm64 butea.exe
+          package windows-x64   butea.exe
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
