@@ -1,5 +1,5 @@
 BINARY_NAME := butea
-VERSION     ?= 0.2.1
+VERSION     ?= 0.2.2
 MODULE      := github.com/ButeaLabs/butea-cli
 
 # -X main.version injects the version into the unexported var in main.go.
